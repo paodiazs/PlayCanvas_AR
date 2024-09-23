@@ -1,0 +1,75 @@
+var TransformControl = pc.createScript('transformControl');
+
+// Variables para velocidad de rotación y movimiento
+TransformControl.attributes.add('rotationSpeed', {
+    type: 'number',
+    default: 50,
+    title: 'Rotation Speed'
+});
+
+TransformControl.attributes.add('movementSpeed', {
+    type: 'number',
+    default: 0.1,
+    title: 'Movement Speed'
+});
+
+// Inicialización del script
+TransformControl.prototype.initialize = function() {
+    // Detectar si el dispositivo es móvil o de escritorio
+    this.isTouchDevice = pc.platform.mobile;
+    
+    // Añadir listeners para el input
+    if (this.isTouchDevice) {
+        this.app.touch.on(pc.EVENT_TOUCHMOVE, this.onTouchMove, this);
+    } else {
+        this.app.mouse.on(pc.EVENT_MOUSEMOVE, this.onMouseMove, this);
+        this.app.mouse.on(pc.EVENT_MOUSEDOWN, this.onMouseDown, this);
+    }
+};
+
+// Método para rotar el objeto con el mouse
+TransformControl.prototype.onMouseMove = function(event) {
+    if (event.buttons[0]) { // Detecta si el botón izquierdo del mouse está presionado
+        var deltaX = event.dx * this.rotationSpeed * 0.01;
+        var deltaY = event.dy * this.rotationSpeed * 0.01;
+        
+        // Rotar el objeto alrededor de los ejes X e Y
+        this.entity.rotateLocal(deltaY, deltaX, 0);
+    }
+};
+
+// Método para mover el objeto con las flechas del teclado
+TransformControl.prototype.onMouseDown = function(event) {
+    if (event.key === pc.KEY_LEFT) {
+        this.entity.translateLocal(-this.movementSpeed, 0, 0); // Mover a la izquierda
+    }
+    if (event.key === pc.KEY_RIGHT) {
+        this.entity.translateLocal(this.movementSpeed, 0, 0); // Mover a la derecha
+    }
+    if (event.key === pc.KEY_UP) {
+        this.entity.translateLocal(0, this.movementSpeed, 0); // Mover hacia arriba
+    }
+    if (event.key === pc.KEY_DOWN) {
+        this.entity.translateLocal(0, -this.movementSpeed, 0); // Mover hacia abajo
+    }
+};
+
+// Método para manejar el movimiento táctil en dispositivos móviles
+TransformControl.prototype.onTouchMove = function(event) {
+    var touch = event.touches[0];
+    var deltaX = touch.dx * this.rotationSpeed * 0.01;
+    var deltaY = touch.dy * this.rotationSpeed * 0.01;
+    
+    // Rotar el objeto en dispositivos móviles
+    this.entity.rotateLocal(deltaY, deltaX, 0);
+};
+
+// Eliminar los listeners al destruir el script
+TransformControl.prototype.onDestroy = function() {
+    if (this.isTouchDevice) {
+        this.app.touch.off(pc.EVENT_TOUCHMOVE, this.onTouchMove, this);
+    } else {
+        this.app.mouse.off(pc.EVENT_MOUSEMOVE, this.onMouseMove, this);
+        this.app.mouse.off(pc.EVENT_MOUSEDOWN, this.onMouseDown, this);
+    }
+};
